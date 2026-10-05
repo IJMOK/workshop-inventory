@@ -1,0 +1,11 @@
+{
+  "name": "Workshop Capture",
+  "short_name": "Workshop",
+  "description": "Catalogue and find everything in the workshop",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#141714",
+  "theme_color": "#1f2a24",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}
