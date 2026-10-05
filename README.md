@@ -134,14 +134,21 @@ Tailscale works behind CGNAT. Both ends connect outwards, so you need no port fo
 
 ### 6. Install Workshop Capture
 
-This repo is private, so Home Assistant can't fetch it from GitHub directly. Until it's public, or images are published, install it as a local add-on:
-
-- [ ] Install the **Samba share** or **Studio Code Server** add-on so you can reach the Pi's `/addons` folder.
-- [ ] Copy the `workshop_capture` folder from this repo into `/addons/` on the Pi.
-- [ ] Settings › Add-ons › Add-on Store › ⋮ › **Check for updates**. **Workshop Capture** appears under *Local add-ons*.
-- [ ] Install it. The first build takes a few minutes on a Pi 4.
+- [ ] Settings › Add-ons › Add-on Store › ⋮ › **Repositories** › add `https://github.com/IJMOK/workshop-inventory`. This needs the repo to be public, because Home Assistant can't sign in to GitHub. If the repo is private, see *Installing from a private repo* below instead.
+- [ ] Install **Workshop Capture**. The first build takes a few minutes on a Pi 4.
 - [ ] In its **Configuration** tab, paste your Anthropic API key into `ai_api_key` (get one at [console.anthropic.com](https://console.anthropic.com)), then start it.
 - [ ] Open **Workshop** in the sidebar, or `http://<pi>:8099` on your phone, and sign in with your Homebox account.
+
+Updates show up as normal add-on updates once a new version is merged to `main`.
+
+<details>
+<summary>Installing from a private repo</summary>
+
+- Install the **Samba share** or **Studio Code Server** add-on so you can reach the Pi's `/addons` folder.
+- Copy the `workshop_capture` folder from this repo into `/addons/` on the Pi.
+- Settings › Add-ons › Add-on Store › ⋮ › **Check for updates**. **Workshop Capture** appears under *Local add-ons*. Then carry on from "Install" above.
+
+</details>
 
 All the options are explained in [the add-on docs](workshop_capture/DOCS.md).
 
