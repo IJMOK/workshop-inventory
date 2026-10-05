@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Workshop Capture</title>
+  <meta name="theme-color" content="#1f2a24">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="bar">
+    <h1>Workshop</h1>
+    <button id="logout" class="link" hidden>Sign out</button>
+  </header>
+
+  <main>
+    <section id="login-view" hidden>
+      <h2>Sign in</h2>
+      <p class="muted">Use your Homebox account.</p>
+      <form id="login-form" class="stack">
+        <label>Email <input name="username" type="email" autocomplete="username" required></label>
+        <label>Password <input name="password" type="password" autocomplete="current-password" required></label>
+        <button class="primary" type="submit">Sign in</button>
+        <p class="error" id="login-error" role="alert"></p>
+      </form>
+    </section>
+
+    <section id="add-view" hidden>
+      <div class="photos" id="photos"></div>
+      <div class="row">
+        <label class="button primary">📷 Add photo
+          <input id="photo-input" type="file" accept="image/*" multiple hidden>
+        </label>
+        <button id="identify" class="button" disabled>✨ Identify</button>
+      </div>
+      <div class="row">
+        <label class="button">🏷️ Scan label
+          <input id="label-input" type="file" accept="image/*" capture="environment" hidden>
+        </label>
+        <button class="button voice" data-target="say" hidden>🎤 Speak</button>
+      </div>
+      <label>Say or type what and where
+        <span class="with-action">
+          <input id="say" placeholder="e.g. cordless drill, top shelf in the metal shop">
+          <button id="say-go" class="button small">Fill in</button>
+        </span>
+      </label>
+      <p class="status" id="add-status" role="status"></p>
+
+      <form id="item-form" class="stack">
+        <label>Name <input name="name" required></label>
+        <label>Location
+          <select name="parentId" id="location-select"></select>
+        </label>
+        <button type="button" id="new-location" class="link">+ New location</button>
+        <div class="grid2">
+          <label>Manufacturer <input name="manufacturer"></label>
+          <label>Model <input name="modelNumber"></label>
+        </div>
+        <label>Serial number <input name="serialNumber" autocapitalize="characters"></label>
+        <div class="grid2">
+          <label>Quantity <input name="quantity" type="number" min="1" value="1" inputmode="numeric"></label>
+          <label>Value <input name="purchasePrice" type="number" min="0" step="0.01" inputmode="decimal"></label>
+        </div>
+        <label>Tags <input name="tags" placeholder="comma separated"></label>
+        <label>Description <textarea name="description" rows="2"></textarea></label>
+        <label>Notes <textarea name="notes" rows="2"></textarea></label>
+        <label class="check"><input name="insured" type="checkbox"> Include in insurance list</label>
+        <button class="primary" type="submit">Save to Homebox</button>
+      </form>
+    </section>
+
+    <section id="find-view" hidden>
+      <form id="find-form" class="with-action">
+        <input id="find-q" type="search" placeholder="What are you looking for?" enterkeyhint="search">
+        <button class="button voice" type="button" data-target="find-q" hidden>🎤</button>
+        <button class="button primary" type="submit">Find</button>
+      </form>
+      <p class="status" id="find-status" role="status"></p>
+      <ul id="results" class="results"></ul>
+    </section>
+    <section id="projects-view" hidden>
+      <form id="new-project" class="stack">
+        <h2>Projects</h2>
+        <label>New project <input name="name" required placeholder="e.g. Workbench rebuild, Brew day: IPA"></label>
+        <label>What does it involve? <textarea name="description" rows="2" placeholder="Optional. With AI on, this is used to suggest what you'll need."></textarea></label>
+        <button class="primary" type="submit">Create project</button>
+      </form>
+      <p class="status" id="projects-status" role="status"></p>
+      <ul id="project-list" class="results"></ul>
+    </section>
+
+    <section id="project-view" hidden>
+      <button class="link" id="back-to-projects">‹ All projects</button>
+      <div class="project-head">
+        <h2 id="project-name"></h2>
+        <select id="project-status" aria-label="Project status">
+          <option value="planning">Planning</option>
+          <option value="active">In progress</option>
+          <option value="done">Done</option>
+        </select>
+      </div>
+      <p class="muted" id="project-desc"></p>
+      <div class="row">
+        <button id="suggest" class="button">✨ Suggest items</button>
+        <button id="reset-pulled" class="button">↩︎ Put all back</button>
+      </div>
+      <label>Add from inventory
+        <span class="with-action">
+          <input id="project-search" type="search" placeholder="Search, or type a name and press Add">
+          <button id="project-add" class="button small">Add</button>
+        </span>
+      </label>
+      <ul id="project-search-results" class="picks"></ul>
+      <div id="suggestions"></div>
+      <p class="status" id="project-status-msg" role="status"></p>
+      <h3>Pull list</h3>
+      <p class="muted">Grouped by where things live. Tick each one as you collect it.</p>
+      <div id="pull-list"></div>
+      <button class="link danger" id="delete-project">Delete project</button>
+    </section>
+  </main>
+
+  <nav class="tabs" id="tabs" hidden>
+    <button data-view="add-view" aria-current="page">➕ Add</button>
+    <button data-view="find-view">🔎 Find</button>
+    <button data-view="projects-view">🧰 Projects</button>
+  </nav>
+
+  <dialog id="location-dialog">
+    <form method="dialog" class="stack" id="location-form">
+      <h2>New location</h2>
+      <label>Name <input name="name" required placeholder="e.g. Drawer 3"></label>
+      <label>Inside <select name="parentId" id="location-parent"></select></label>
+      <div class="row">
+        <button value="cancel" formnovalidate class="button">Cancel</button>
+        <button value="ok" class="button primary">Create</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

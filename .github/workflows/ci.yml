@@ -1,0 +1,39 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: workshop_capture
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: workshop_capture/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build the add-on image
+        run: docker build -t workshop-capture workshop_capture
+      - name: Smoke test the image
+        run: |
+          docker run -d --name wc -p 8099:8099 -e AI_PROVIDER=none workshop-capture
+          for i in $(seq 1 20); do curl -fsS localhost:8099/api/status && exit 0; sleep 1; done
+          docker logs wc
+          exit 1

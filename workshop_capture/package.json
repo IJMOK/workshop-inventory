@@ -1,0 +1,25 @@
+{
+  "name": "workshop-capture",
+  "version": "0.1.0",
+  "description": "Camera, voice and AI capture for Homebox",
+  "scripts": {
+    "start": "node src/index.ts",
+    "typecheck": "tsc",
+    "test": "node --test test/*.test.ts",
+    "check": "npm run typecheck && npm test"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.131.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2"
+  },
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  }
+}

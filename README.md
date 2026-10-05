@@ -7,7 +7,7 @@ It has two parts:
 - **[Homebox](https://github.com/sysadminsmedia/homebox)** holds all the records: items, nested locations, model and serial, purchase and warranty details, photos, receipts, QR labels and CSV export.
 - **Workshop Capture** is this repo. It adds an installable phone and browser app that uses the camera, microphone and AI to make capturing and finding things quick.
 
-> Status: planning. Nothing is built yet. See [Roadmap](#roadmap).
+> Status: first prototype. See [Roadmap](#roadmap) and [the add-on docs](workshop_capture/DOCS.md).
 
 ---
 
@@ -33,8 +33,8 @@ Everything runs on the Raspberry Pi 4 that already runs Home Assistant OS (4 GB 
 
 | Piece | What it is | Why |
 |---|---|---|
-| Homebox | Community add-on from [alexbelgium/hassio-addons](https://github.com/alexbelgium/hassio-addons) | Proven home inventory app, light enough for a Pi (well under 100 MB RAM) |
-| Workshop Capture | Our own Home Assistant add-on: a small server plus a PWA | Camera, voice and AI capture, project pull lists, insurance report. Uses the Homebox API |
+| Homebox | Community add-on from [Crafter-Y/homebox-addon](https://github.com/Crafter-Y/homebox-addon) (Homebox 0.26, actively maintained) | Proven home inventory app, light enough for a Pi (well under 100 MB RAM) |
+| Workshop Capture | Our own Home Assistant add-on in [`workshop_capture/`](workshop_capture/): a small server plus a PWA | Camera, voice and AI capture, project pull lists. Uses the Homebox API |
 | Tailscale | Official Home Assistant add-on | Private remote access that works behind CGNAT, with a real HTTPS certificate. Android Chrome needs HTTPS before it allows camera and mic |
 | Backups | Home Assistant's built-in [Google Drive backup](https://www.home-assistant.io/integrations/google_drive/) | Add-on data, including the Homebox database and photos, is included in Home Assistant backups |
 
@@ -73,6 +73,7 @@ Rules:
 - Photos go to the AI provider only when you tap **Identify** or **Scan label**.
 - AI output is always shown as editable suggestions. Nothing is saved until you confirm it.
 - API keys stay on the server in the add-on options and never reach the browser.
+- You sign in with your Homebox account. The app keeps your Homebox session on the server and gives the browser only an opaque, HttpOnly cookie.
 
 ---
 
@@ -127,13 +128,22 @@ Tailscale works behind CGNAT. Both ends connect outwards, so you need no port fo
 
 ### 5. Install Homebox
 
-- [ ] Settings › Add-ons › Add-on Store › ⋮ › **Repositories** › add `https://github.com/alexbelgium/hassio-addons`.
-- [ ] Install **Homebox**, start it, and create your account.
+- [ ] Settings › Add-ons › Add-on Store › ⋮ › **Repositories** › add `https://github.com/Crafter-Y/homebox-addon`.
+- [ ] Install **Homebox**, start it, open it, and create your account.
 - [ ] Rough out your top-level locations: Brewery, Metal shop, Wood shop, Electronics bench, General storage, and so on.
 
 ### 6. Install Workshop Capture
 
-Coming once the first version is built. It will be added as a Home Assistant add-on repository pointing at this repo.
+This repo is private, so Home Assistant can't fetch it from GitHub directly. Until it's public, or images are published, install it as a local add-on:
+
+- [ ] Install the **Samba share** or **Studio Code Server** add-on so you can reach the Pi's `/addons` folder.
+- [ ] Copy the `workshop_capture` folder from this repo into `/addons/` on the Pi.
+- [ ] Settings › Add-ons › Add-on Store › ⋮ › **Check for updates**. **Workshop Capture** appears under *Local add-ons*.
+- [ ] Install it. The first build takes a few minutes on a Pi 4.
+- [ ] In its **Configuration** tab, paste your Anthropic API key into `ai_api_key` (get one at [console.anthropic.com](https://console.anthropic.com)), then start it.
+- [ ] Open **Workshop** in the sidebar, or `http://<pi>:8099` on your phone, and sign in with your Homebox account.
+
+All the options are explained in [the add-on docs](workshop_capture/DOCS.md).
 
 ---
 
@@ -141,7 +151,7 @@ Coming once the first version is built. It will be added as a Home Assistant add
 
 - The app is reachable **only over your Tailscale network**, with nothing open to the internet.
 - You sign in with your Homebox account.
-- AI API keys and the Homebox token live in the add-on options on the Pi, never in the browser.
+- AI API keys live in the add-on options on the Pi, and your Homebox session stays on the server. Neither ever reaches the browser.
 - Photos leave the Pi only when you ask for AI identification, and only to the provider you configured.
 - Backups are encrypted before they go to Google Drive.
 
@@ -149,8 +159,8 @@ Coming once the first version is built. It will be added as a Home Assistant add
 
 ## Tech
 
-- **Server:** TypeScript on Node.js
-- **Frontend:** an installable PWA with a mobile-first UI that works offline for browsing
+- **Server:** TypeScript on Node.js 22, with no web framework and two dependencies (the Anthropic SDK and zod)
+- **Frontend:** a mobile-first PWA in plain JavaScript, with no build step
 - **Packaging:** a Home Assistant add-on with an `aarch64` Docker image
 - **Tests:** mocked Homebox API and mocked AI adapters, so they run without the Pi or API keys
 
@@ -158,12 +168,25 @@ Coming once the first version is built. It will be added as a Home Assistant add
 
 - [x] Choose the approach (Homebox + capture app on the Home Assistant Pi)
 - [ ] Pi setup and hardening (steps 1 to 5 above)
-- [ ] Scaffold the add-on, server, PWA and AI provider interface
-- [ ] Quick add, label scan and find
-- [ ] Projects and pull lists
+- [x] Scaffold the add-on, server, PWA and AI provider interface
+- [x] Quick add, label scan and find
+- [x] Projects and pull lists
+- [ ] HTTPS on the tailnet, for the 🎤 buttons and installing to the home screen
 - [ ] Insurance report
 - [ ] Bulk mode
+- [ ] Published add-on images, so updates install without copying files
 
-## Open questions
+## Development
 
-- Does the Pi boot from an SD card or an SSD? Photos will use most of the storage, and SD cards wear out under constant writes, so an SSD is better.
+```bash
+cd workshop_capture
+npm install
+npm run check              # typecheck + tests
+node test/demo-server.ts   # runs the UI against a fake Homebox and fake AI; sign in as rob@example.com / pw
+```
+
+The server runs TypeScript directly on Node 22.18+ (no build step). Tests use a fake Homebox and fake AI, so they need no Pi or API key.
+
+## Notes
+
+- The Pi currently boots from an SD card. Photos are resized to roughly 200 to 300 KB on the phone before upload, and backups go to Google Drive. Moving to a Pi 5 with NVMe later is a Home Assistant backup and restore.
